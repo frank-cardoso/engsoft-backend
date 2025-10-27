@@ -3,12 +3,16 @@ package com.example.servicos.services;
 import com.example.servicos.domain.Chamado;
 import com.example.servicos.domain.Cliente;
 import com.example.servicos.domain.Tecnico;
-import com.example.servicos.domain.enums.Prioridade;
-import com.example.servicos.domain.enums.Status;
 import com.example.servicos.dto.ChamadoDTO;
 import com.example.servicos.repositories.ChamadoRepository;
+import com.example.servicos.mappers.ChamadoMapper;
+import com.example.servicos.services.exceptions.ObjectNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,56 +27,51 @@ public class ChamadoService {
     private TecnicoService tecnicoService;
     @Autowired
     private ClienteService clienteService;
+    @Autowired
+    private ChamadoMapper mapper;
 
-    public Optional<Chamado> findById(Integer id) {
-        return repository.findById(id);
+    @Transactional(readOnly = true)
+    public Chamado findById(Integer id) {
+        Optional<Chamado> obj = repository.findById(id);
+        return obj.orElseThrow(() -> new ObjectNotFoundException("Chamado não encontrado! ID: " + id));
     }
 
+    @Transactional(readOnly = true)
     public List<Chamado> findAll() {
         return repository.findAll();
     }
 
-    public Chamado create(ChamadoDTO objDTO) {
-        Tecnico tecnico = tecnicoService.findById(objDTO.getTecnico()).orElse(null);
-        Cliente cliente = clienteService.findById(objDTO.getCliente()).orElse(null);
+    @Transactional(readOnly = true)
+    public Page<Chamado> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
 
-        Chamado newObj = new Chamado();
-        if (objDTO.getStatus().equals(2)) {
+    @Transactional
+    public Chamado create(@Valid ChamadoDTO objDTO) {
+        return repository.save(fromDTO(objDTO));
+    }
+
+    @Transactional
+    public Chamado update(Integer id, @Valid ChamadoDTO objDTO) {
+        objDTO.setId(id);
+        findById(id);
+        return repository.save(fromDTO(objDTO));
+    }
+
+    private Chamado fromDTO(ChamadoDTO objDTO) {
+        Chamado newObj = mapper.toEntity(objDTO);
+        newObj.setId(objDTO.getId());
+
+        Tecnico tec = tecnicoService.findById(objDTO.getTecnico());
+        Cliente cli = clienteService.findById(objDTO.getCliente());
+
+        newObj.setTecnico(tec);
+        newObj.setCliente(cli);
+
+        if (newObj.getStatus().getCodigo().equals(2)) {
             newObj.setDataFechamento(LocalDate.now());
         }
 
-        newObj.setTecnico(tecnico);
-        newObj.setCliente(cliente);
-        newObj.setPrioridade(Prioridade.toEnum(objDTO.getPrioridade()));
-        newObj.setStatus(Status.toEnum(objDTO.getStatus()));
-        newObj.setTitulo(objDTO.getTitulo());
-        newObj.setObservacoes(objDTO.getObservacoes());
-        return repository.save(newObj);
-    }
-
-    public Optional<Chamado> update(Integer id, ChamadoDTO objDTO) {
-        Optional<Chamado> optionalChamado = repository.findById(id);
-
-        if (optionalChamado.isPresent()) {
-            Chamado oldObj = optionalChamado.get();
-
-            Tecnico tecnico = tecnicoService.findById(objDTO.getTecnico()).orElse(null);
-            Cliente cliente = clienteService.findById(objDTO.getCliente()).orElse(null);
-
-            oldObj.setTecnico(tecnico);
-            oldObj.setCliente(cliente);
-            oldObj.setPrioridade(Prioridade.toEnum(objDTO.getPrioridade()));
-            oldObj.setStatus(Status.toEnum(objDTO.getStatus()));
-            oldObj.setTitulo(objDTO.getTitulo());
-            oldObj.setObservacoes(objDTO.getObservacoes());
-
-            if (oldObj.getStatus().getCodigo().equals(2)) {
-                oldObj.setDataFechamento(LocalDate.now());
-            }
-
-            return Optional.of(repository.save(oldObj));
-        }
-
-        return Optional.empty();
+        return newObj;
     }
 }

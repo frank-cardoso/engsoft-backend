@@ -1,5 +1,6 @@
 package com.example.servicos.domain;
 
+import com.example.servicos.domain.enums.Perfil;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 
@@ -25,6 +26,8 @@ public abstract class Pessoa implements Serializable {
 
     protected String senha;
 
+    @Enumerated(EnumType.ORDINAL)
+    protected Perfil perfil;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
     protected LocalDate dataCriacao = LocalDate.now();
@@ -52,6 +55,8 @@ public abstract class Pessoa implements Serializable {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
+    public Perfil getPerfil() { return perfil; }
+    public void setPerfil(Perfil perfil) { this.perfil = perfil; }
     public LocalDate getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDate dataCriacao) { this.dataCriacao = dataCriacao; }
 

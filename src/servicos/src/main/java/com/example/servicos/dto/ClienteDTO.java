@@ -2,35 +2,39 @@ package com.example.servicos.dto;
 
 import com.example.servicos.domain.Cliente;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ClienteDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     protected Integer id;
 
-    @NotNull(message = "O campo NOME é obrigatório")
+    @NotBlank(message = "O campo NOME é obrigatório.")
+    @Size(min = 3, max = 100, message = "O nome deve ter entre 3 e 100 caracteres.")
     protected String nome;
 
-    @NotNull(message = "O campo CPF é obrigatório")
+    @NotBlank(message = "O campo CPF é obrigatório.")
+    @Pattern(regexp = "\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}", message = "Formato de CPF inválido.")
     protected String cpf;
 
-    @NotNull(message = "O campo EMAIL é obrigatório")
+    @Email(message = "Formato de e-mail inválido.")
+    @NotBlank(message = "O campo EMAIL é obrigatório.")
     protected String email;
 
-    @NotNull(message = "O campo SENHA é obrigatório")
+    @NotBlank(message = "O campo SENHA é obrigatório.")
+    @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
     protected String senha;
 
-    protected Set<Integer> perfis = new HashSet<>();
+    protected Integer perfil;
 
     @JsonFormat(pattern = "dd/MM/yyyy")
-    protected LocalDate dataCriacao = LocalDate.now();
+    protected LocalDate dataCriacao;
 
     public ClienteDTO() {
         super();
@@ -42,7 +46,7 @@ public class ClienteDTO implements Serializable {
         this.cpf = obj.getCpf();
         this.email = obj.getEmail();
         this.senha = obj.getSenha();
-        this.perfis = obj.getPerfis().stream().map(x -> x.getCodigo()).collect(Collectors.toSet());
+        this.perfil = (obj.getPerfil() == null) ? null : obj.getPerfil().getCodigo();
         this.dataCriacao = obj.getDataCriacao();
     }
 
@@ -56,8 +60,8 @@ public class ClienteDTO implements Serializable {
     public void setEmail(String email) { this.email = email; }
     public String getSenha() { return senha; }
     public void setSenha(String senha) { this.senha = senha; }
-    public Set<Integer> getPerfis() { return perfis; }
-    public void setPerfis(Set<Integer> perfis) { this.perfis = perfis; }
+    public Integer getPerfil() { return perfil; }
+    public void setPerfil(Integer perfil) { this.perfil = perfil; }
     public LocalDate getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDate dataCriacao) { this.dataCriacao = dataCriacao; }
 }

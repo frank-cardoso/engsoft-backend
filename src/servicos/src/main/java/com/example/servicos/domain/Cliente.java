@@ -18,23 +18,19 @@ public class Cliente extends Pessoa {
     @OneToMany(mappedBy = "cliente")
     private List<Chamado> chamados = new ArrayList<>();
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "PERFIS_CLIENTE")
-    protected Set<Integer> perfis = new HashSet<>();
-
     public Cliente() {
         super();
-        addPerfil(Perfil.CLIENTE);
+        setPerfil(Perfil.CLIENTE);
     }
 
     public Cliente(com.example.servicos.dto.ClienteDTO obj) {
         super(obj.getId(), obj.getNome(), obj.getCpf(), obj.getEmail(), obj.getSenha());
-        addPerfil(Perfil.CLIENTE);
+        setPerfil(Perfil.CLIENTE);
     }
 
     public Cliente(Integer id, String nome, String cpf, String email, String senha) {
         super(id, nome, cpf, email, senha);
-        addPerfil(Perfil.CLIENTE);
+        setPerfil(Perfil.CLIENTE);
     }
 
     public List<Chamado> getChamados() {
@@ -45,11 +41,4 @@ public class Cliente extends Pessoa {
         this.chamados = chamados;
     }
 
-    public Set<Perfil> getPerfis() {
-        return perfis.stream().map(Perfil::toEnum).collect(Collectors.toSet());
-    }
-
-    public void addPerfil(Perfil perfil) {
-        this.perfis.add(perfil.getCodigo());
-    }
 }
